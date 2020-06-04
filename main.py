@@ -7,6 +7,15 @@ WINDOW_WIDTH = 1024
 WINDOW_HEIGHT = 720
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
+# Color setting
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+LIGHT_BLUE = (173, 216, 230)
+GREY = (58, 58, 60)
+
 # Background settind
 FIELD_WIDTH = WINDOW_HEIGHT
 FIELD_HEIGHT = WINDOW_HEIGHT
@@ -14,14 +23,15 @@ img = pygame.image.load('images/background.png')
 img_rect = pygame.Rect((0, 0), (FIELD_WIDTH, FIELD_HEIGHT))
 img = pygame.transform.scale(img, (FIELD_WIDTH, FIELD_HEIGHT))
 
+PANEL_WIDTH = WINDOW_WIDTH - FIELD_WIDTH
+PANEL_HEIGHT = WINDOW_HEIGHT
+panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
+panel.fill(GREY)
+panel_rect = pygame.Rect((FIELD_WIDTH, 0), (PANEL_WIDTH, PANEL_HEIGHT))
+
 # Fps setting
 clock = pygame.time.Clock()
 FPS = 60  # Frames per second.
-
-# Color setting
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-# RED = (255, 0, 0), GREEN = (0, 255, 0), BLUE = (0, 0, 255).
 
 # White test rectangle setting
 white_rect = pygame.Surface((32, 32))
@@ -49,4 +59,9 @@ while True:
     # Drawing
     screen.blit(img, img_rect)
     screen.blit(white_rect, white_rect_rect)
+    screen.blit(panel, panel_rect)
+
+    pygame.draw.rect(screen, LIGHT_BLUE, (796, 360, 152, 30))
+
+    # Updating
     pygame.display.update()  # Or pygame.display.flip()
