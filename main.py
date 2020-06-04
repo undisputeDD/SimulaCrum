@@ -7,6 +7,7 @@ screen = pygame.display.set_mode((1024, 720))
 
 img = pygame.image.load('images/background.png')
 img_rect = pygame.Rect((0, 0), (320, 240))
+img = pygame.transform.scale(img, (320, 240))
 
 clock = pygame.time.Clock()
 FPS = 60  # Frames per second.
@@ -15,9 +16,9 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 # RED = (255, 0, 0), GREEN = (0, 255, 0), BLUE = (0, 0, 255).
 
-rect = pygame.Rect((0, 0), (32, 32))
-image = pygame.Surface((32, 32))
-image.fill(WHITE)
+white_rect = pygame.Surface((32, 32))
+white_rect.fill(WHITE)
+white_rect_rect = pygame.Rect((0, 0), (32, 32))
 
 while True:
     clock.tick(FPS)
@@ -27,14 +28,14 @@ while True:
             quit()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                rect.move_ip(0, -2)
+                white_rect_rect.move_ip(0, -5)
             elif event.key == pygame.K_s:
-                rect.move_ip(0, 2)
+                white_rect_rect.move_ip(0, 5)
             elif event.key == pygame.K_a:
-                rect.move_ip(-2, 0)
+                white_rect_rect.move_ip(-5, 0)
             elif event.key == pygame.K_d:
-                rect.move_ip(2, 0)
+                white_rect_rect.move_ip(5, 0)
 
     screen.blit(img, img_rect)
-    screen.blit(image, rect)
+    screen.blit(white_rect, white_rect_rect)
     pygame.display.update()  # Or pygame.display.flip()
