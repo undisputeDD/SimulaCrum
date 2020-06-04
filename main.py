@@ -15,6 +15,7 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 LIGHT_BLUE = (173, 216, 230)
 GREY = (58, 58, 60)
+BLUE_GREY = (112, 128, 144)
 
 # Background settind
 FIELD_WIDTH = WINDOW_HEIGHT
@@ -63,10 +64,20 @@ while True:
 
     mouse_pos = pygame.mouse.get_pos()
 
-    if 796 + 152 > mouse_pos[0] > 796 and 480 + 30 > mouse_pos[1] > 480:
-        pygame.draw.rect(screen, LIGHT_BLUE, (796, 480, 152, 30))
+    if 796 + 152 > mouse_pos[0] > 796 and 478 + 30 > mouse_pos[1] > 478:
+        pygame.draw.rect(screen, BLUE_GREY, (796, 478, 152, 30))
     else:
-        pygame.draw.rect(screen, BLUE, (796, 480, 152, 30))
+        pygame.draw.rect(screen, LIGHT_BLUE, (796, 478, 152, 30))
+
+    if 796 + 152 > mouse_pos[0] > 796 and 546 + 30 > mouse_pos[1] > 546:
+        pygame.draw.rect(screen, BLUE_GREY, (796, 546, 152, 30))
+    else:
+        pygame.draw.rect(screen, LIGHT_BLUE, (796, 546, 152, 30))
+
+    if 796 + 152 > mouse_pos[0] > 796 and 614 + 30 > mouse_pos[1] > 614:
+        pygame.draw.rect(screen, BLUE_GREY, (796, 614, 152, 30))
+    else:
+        pygame.draw.rect(screen, LIGHT_BLUE, (796, 614, 152, 30))
 
     # Updating
     pygame.display.update()  # Or pygame.display.flip()
