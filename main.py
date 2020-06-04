@@ -61,7 +61,12 @@ while True:
     screen.blit(white_rect, white_rect_rect)
     screen.blit(panel, panel_rect)
 
-    pygame.draw.rect(screen, LIGHT_BLUE, (796, 360, 152, 30))
+    mouse_pos = pygame.mouse.get_pos()
+
+    if 796 + 152 > mouse_pos[0] > 796 and 480 + 30 > mouse_pos[1] > 480:
+        pygame.draw.rect(screen, LIGHT_BLUE, (796, 480, 152, 30))
+    else:
+        pygame.draw.rect(screen, BLUE, (796, 480, 152, 30))
 
     # Updating
     pygame.display.update()  # Or pygame.display.flip()
