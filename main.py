@@ -3,7 +3,11 @@ successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
 
 
-screen = pygame.display.set_mode((720, 480))
+screen = pygame.display.set_mode((1024, 720))
+
+img = pygame.image.load('images/background.png')
+img_rect = pygame.Rect((0, 0), (320, 240))
+
 clock = pygame.time.Clock()
 FPS = 60  # Frames per second.
 
@@ -13,7 +17,7 @@ WHITE = (255, 255, 255)
 
 rect = pygame.Rect((0, 0), (32, 32))
 image = pygame.Surface((32, 32))
-image .fill(WHITE)
+image.fill(WHITE)
 
 while True:
     clock.tick(FPS)
@@ -31,6 +35,6 @@ while True:
             elif event.key == pygame.K_d:
                 rect.move_ip(2, 0)
 
-    screen.fill(BLACK)
+    screen.blit(img, img_rect)
     screen.blit(image, rect)
     pygame.display.update()  # Or pygame.display.flip()
