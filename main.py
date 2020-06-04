@@ -3,11 +3,16 @@ successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
 
 
-screen = pygame.display.set_mode((1024, 720))
+WINDOW_WIDTH = 1024
+WINDOW_HEIGHT = 720
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+
+FIELD_WIDTH = WINDOW_HEIGHT
+FIELD_HEIGHT = WINDOW_HEIGHT
 
 img = pygame.image.load('images/background.png')
-img_rect = pygame.Rect((0, 0), (320, 240))
-img = pygame.transform.scale(img, (320, 240))
+img_rect = pygame.Rect((0, 0), (FIELD_WIDTH, FIELD_HEIGHT))
+img = pygame.transform.scale(img, (FIELD_WIDTH, FIELD_HEIGHT))
 
 clock = pygame.time.Clock()
 FPS = 60  # Frames per second.
