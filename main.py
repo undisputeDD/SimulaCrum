@@ -69,15 +69,33 @@ while True:
     else:
         pygame.draw.rect(screen, LIGHT_BLUE, (796, 478, 152, 30))
 
+    startText = pygame.font.Font("freesansbold.ttf", 20)
+    textSurf = startText.render("Start", True, BLACK)
+    textRect = textSurf.get_rect()
+    textRect.center = ((796 + (152 / 2)), (478 + (30 / 2)))
+    screen.blit(textSurf, textRect)
+
     if 796 + 152 > mouse_pos[0] > 796 and 546 + 30 > mouse_pos[1] > 546:
         pygame.draw.rect(screen, BLUE_GREY, (796, 546, 152, 30))
     else:
         pygame.draw.rect(screen, LIGHT_BLUE, (796, 546, 152, 30))
 
+    startText = pygame.font.Font("freesansbold.ttf", 20)
+    textSurf = startText.render("Settings", True, BLACK)
+    textRect = textSurf.get_rect()
+    textRect.center = ((796 + (152 / 2)), (546 + (30 / 2)))
+    screen.blit(textSurf, textRect)
+
     if 796 + 152 > mouse_pos[0] > 796 and 614 + 30 > mouse_pos[1] > 614:
         pygame.draw.rect(screen, BLUE_GREY, (796, 614, 152, 30))
     else:
         pygame.draw.rect(screen, LIGHT_BLUE, (796, 614, 152, 30))
+
+    startText = pygame.font.Font("freesansbold.ttf", 20)
+    textSurf = startText.render("Quit", True, BLACK)
+    textRect = textSurf.get_rect()
+    textRect.center = ((796 + (152 / 2)), (614 + (30 / 2)))
+    screen.blit(textSurf, textRect)
 
     # Updating
     pygame.display.update()  # Or pygame.display.flip()
