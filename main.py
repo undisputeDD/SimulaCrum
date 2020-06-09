@@ -30,6 +30,7 @@ def button(msg, x, y, w, h, ic, ac, action=None):
     screen.blit(textSurf, textRect)
 
 
+# Initialisation of a program
 successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
 
