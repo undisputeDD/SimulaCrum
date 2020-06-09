@@ -1,4 +1,35 @@
 import pygame
+
+
+def start_func():
+    print('! START IS CALLED !')
+
+
+def settings_func():
+    print('! SETTINGS IS CALLED !')
+
+
+def quit_func():
+    print('! QUIT IS CALLED !')
+
+
+def button(msg, x, y, w, h, ic, ac, action=None):
+    mouse_pos = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+
+    if x + w > mouse_pos[0] > x and y + h > mouse_pos[1] > y:
+        pygame.draw.rect(screen, ac, (x, y, w, h))
+        if click[0] == 1 and action != None:
+            action()
+    else:
+        pygame.draw.rect(screen, ic, (x, y, w, h))
+    startText = pygame.font.Font("freesansbold.ttf", 20)
+    textSurf = startText.render(msg, True, BLACK)
+    textRect = textSurf.get_rect()
+    textRect.center = ((x + (w / 2)), (y + (h / 2)))
+    screen.blit(textSurf, textRect)
+
+
 successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
 
@@ -46,6 +77,7 @@ while True:
     # Event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            pygame.quit()
             quit()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
@@ -62,40 +94,10 @@ while True:
     screen.blit(white_rect, white_rect_rect)
     screen.blit(panel, panel_rect)
 
-    mouse_pos = pygame.mouse.get_pos()
-
-    if 796 + 152 > mouse_pos[0] > 796 and 478 + 30 > mouse_pos[1] > 478:
-        pygame.draw.rect(screen, BLUE_GREY, (796, 478, 152, 30))
-    else:
-        pygame.draw.rect(screen, LIGHT_BLUE, (796, 478, 152, 30))
-
-    startText = pygame.font.Font("freesansbold.ttf", 20)
-    textSurf = startText.render("Start", True, BLACK)
-    textRect = textSurf.get_rect()
-    textRect.center = ((796 + (152 / 2)), (478 + (30 / 2)))
-    screen.blit(textSurf, textRect)
-
-    if 796 + 152 > mouse_pos[0] > 796 and 546 + 30 > mouse_pos[1] > 546:
-        pygame.draw.rect(screen, BLUE_GREY, (796, 546, 152, 30))
-    else:
-        pygame.draw.rect(screen, LIGHT_BLUE, (796, 546, 152, 30))
-
-    startText = pygame.font.Font("freesansbold.ttf", 20)
-    textSurf = startText.render("Settings", True, BLACK)
-    textRect = textSurf.get_rect()
-    textRect.center = ((796 + (152 / 2)), (546 + (30 / 2)))
-    screen.blit(textSurf, textRect)
-
-    if 796 + 152 > mouse_pos[0] > 796 and 614 + 30 > mouse_pos[1] > 614:
-        pygame.draw.rect(screen, BLUE_GREY, (796, 614, 152, 30))
-    else:
-        pygame.draw.rect(screen, LIGHT_BLUE, (796, 614, 152, 30))
-
-    startText = pygame.font.Font("freesansbold.ttf", 20)
-    textSurf = startText.render("Quit", True, BLACK)
-    textRect = textSurf.get_rect()
-    textRect.center = ((796 + (152 / 2)), (614 + (30 / 2)))
-    screen.blit(textSurf, textRect)
+    # Adding buttons
+    button('Start', 796, 478, 152, 30, LIGHT_BLUE, BLUE_GREY, start_func)
+    button('Settings', 796, 546, 152, 30, LIGHT_BLUE, BLUE_GREY, settings_func)
+    button('Quit', 796, 614, 152, 30, LIGHT_BLUE, BLUE_GREY, quit_func)
 
     # Updating
     pygame.display.update()  # Or pygame.display.flip()
