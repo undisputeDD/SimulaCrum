@@ -313,9 +313,9 @@ class BlopCatalogue(ttk.Notebook):
             self.__initialize_custom_style()
             self.__inititialized = True
 
+        kwargs["style"] = "CustomNotebook"
         ttk.Notebook.__init__(self, *args, **kwargs)
         tab = tk.Frame(self)
-        kwargs["style"] = "CustomNotebook"
         self.notebook = ttk.Notebook(parent)
         self._active = None
         self.root = parent
