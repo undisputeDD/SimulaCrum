@@ -1,4 +1,3 @@
-# print("EXCEPTION<!>: ___404___" + old_trait)
 import copy
 import random
 import tkinter as tk
@@ -41,10 +40,6 @@ def show_info():
                         )
 
 
-def handle_enter(widget, tab, full_name_entry):
-    widget.tab(tab, text=full_name_entry.get())
-
-
 def contrast(hex_color):
     h = hex_color.lstrip('#')
     rgb = tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
@@ -64,56 +59,6 @@ def show_message(mini_root):
     confused = ttk.Label(mini_root, image=img)
     confused.image = img
     confused.grid(row=0, column=0, pady=50, padx=10)
-
-
-def mutate_win(widget, data):
-    mini_root = tk.Toplevel(widget)
-    mini_root.grab_set()
-    mini_root.iconphoto(False, tk.PhotoImage(file='./data/icons/dna4.png'))
-    mini_root.title('Mutations')
-    mini_root.focus_set()
-    mini_root.bind("<Escape>", lambda _: mini_root.destroy())
-    mini_root.bind("<Control-w>", lambda _: mini_root.destroy())
-    mini_root.bind("<Control-s>", lambda _: save_mute(data[-1], new_dict, mini_root))
-    mini_root.resizable(False, False)
-    x = 0
-    new_dict = {}
-    items = list(widget.valid_blops.items())
-    if len(items) == 0 or (len(items) == 1 and widget.select() in widget.valid_blops):
-        show_message(mini_root)
-        return
-
-    entries = []
-    # WARNING hardcoded 6 for color picker
-    for key, value in items:
-        if key != widget.select():
-            hex_color = value[6].get()
-            contrast_font = contrast(hex_color)
-            ttk.Label(mini_root, text=value[0].get(), background=hex_color, foreground=contrast_font, width=12,
-                      justify='center').grid(row=x, column=0)
-            text_var = tk.StringVar(mini_root)
-            entries.append(ttk.Entry(mini_root, width=10, font=("Helvetica", 10),
-                                     textvariable=text_var, justify='right'))
-
-            entries[-1].grid(row=x, column=1, pady=5)
-            present = data[-1].get(key)
-
-            text_to_insert = "" if (present is None) else present
-
-            print("!: " + text_to_insert)
-            entries[-1].insert(0, text_to_insert)
-            new_dict[key] = text_var
-            x += 1
-
-    # for entry, key, value in zip(entries, items):
-    #     entry.insert(0, data[-1].get(key))
-
-    cancel_btn = ttk.Button(mini_root, text="Cancel", command=lambda: mini_root.destroy())
-    cancel_btn.grid(row=x, column=0, padx=10, pady=10)
-
-    # WARNING -1 is hardcoded for mutation entry
-    save_btn = ttk.Button(mini_root, text='Save', command=lambda: save_mute(data[-1], new_dict, mini_root))
-    save_btn.grid(row=x, column=1, padx=10, pady=10)
 
 
 def save_mute(base_dict, new_dict, mini_root):
@@ -138,43 +83,15 @@ def save_mute(base_dict, new_dict, mini_root):
     mini_root.destroy()
 
 
-def save_blop(widget, tab, data):
-    tab.focus_set()
-    widget.tab(tab, text=data[0].get())
-    if widget.proof_read(data) is not None:
-        messagebox.showerror("Invalid input", widget.proof_read(data))
-        saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/fail.png").resize((15, 15)), Image.ANTIALIAS)
-        widget.tab(tab, image=saved_icon, compound='left')
-        tab.update()
-    else:
-        messagebox.showinfo("Success", "Data was recorded!")
-        saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/mini_tick.png"))
-        widget.tab(tab, image=saved_icon, compound='left')
-        tab.image = saved_icon
-        widget.valid_blops[widget.select()] = data
-
-
-def clone_blop(widget, this_tab, this_tab_data):
-    widget.add_filled_tab()
-    # TODO WTF?
-    for old_trait, blank_trait in zip(this_tab_data, widget.blops_data[widget.select()]):
-        try:
-            blank_trait.set(old_trait.get())
-        except Exception:
-            print("Couldn't assign value thru set!")
-            blank_trait = old_trait
-
-
 class BlopCatalogue(ttk.Notebook):
 
     def fill_tab(self, tab):
         data = self.fill_tab_inner(tab)
-        print(self.select() + "<><!><>")
-        self.blops_data[self.select()] = data
+        self.frame_to_data[self.select()] = data
 
     def fill_tab_inner(self, tab):
-        print(tab.__class__)
-        blop_data = []
+        blop_data = {}
+
         # name
         name_lbl = ttk.Label(tab, text="Name")
         name_lbl.grid(row=0, column=0, columnspan=2, pady=(8, 4))
@@ -186,9 +103,8 @@ class BlopCatalogue(ttk.Notebook):
 
         name_var = tk.StringVar(tab)
         name_field = ttk.Entry(tab, width=12, font=("Helvetica", 10), textvariable=name_var)
-        blop_data.append(name_var)
         name_field.grid(row=1, column=1)
-        name_field.bind("<Return>", lambda _: handle_enter(self, tab, name_field))
+        name_field.bind("<Return>", lambda _: self.handle_enter(tab, name_field))
         name_field.focus_set()
 
         # population share
@@ -201,11 +117,8 @@ class BlopCatalogue(ttk.Notebook):
         ratio_icon_lbl.image = ratio_icon
         ratio_icon_lbl.grid(row=1, column=2, padx=(10, 10), pady=8)
 
-        # fg = ('grey', 'white')[auto]
         ratio_var = tk.StringVar(tab)
-        ratio_field = ttk.Entry(tab, width=12, font=("Helvetica", 10), justify='right',
-                                textvariable=ratio_var)
-        blop_data.append(ratio_var)
+        ratio_field = ttk.Entry(tab, width=12, font=("Helvetica", 10), justify='right', textvariable=ratio_var)
         ratio_field.grid(row=1, column=3, padx=10)
 
         # encounter
@@ -221,7 +134,6 @@ class BlopCatalogue(ttk.Notebook):
         encounter_var = tk.StringVar(tab)
         encounter_options = ttk.OptionMenu(tab, encounter_var, "Behavior",  # <- pre-chosen
                                            "Aggressive", "Submissive", "Neutral")  # all options
-        blop_data.append(encounter_var)
         encounter_options.grid(row=1, column=5, padx=(0, 10))
 
         # survival section
@@ -240,7 +152,6 @@ class BlopCatalogue(ttk.Notebook):
         survive_var = tk.DoubleVar(tab)
         survive_scale = ttk.Scale(tab, from_=0.5, to=5, orient=tk.HORIZONTAL, length=100,
                                   variable=survive_var, command=lambda s: survive_val.set('%0.1f' % float(s)))
-        blop_data.append(survive_var)
         survive_scale.grid(row=3, column=1, sticky='ew', padx=(0, 10), pady=(20, 0))
         survive_scale.set(1)
 
@@ -260,7 +171,6 @@ class BlopCatalogue(ttk.Notebook):
         replica_var = tk.DoubleVar(tab)
         replica_scale = ttk.Scale(tab, from_=0.5, to=5, orient=tk.HORIZONTAL, length=120,
                                   variable=replica_var, command=lambda s: replica_val.set('%0.1f' % float(s)))
-        blop_data.append(replica_var)
         replica_scale.grid(row=3, column=3, sticky='ew', padx=(0, 10), pady=(20, 0))
         replica_scale.set(2)
 
@@ -281,7 +191,6 @@ class BlopCatalogue(ttk.Notebook):
                                variable=speed_var, command=lambda s: speed_slider.set('%0.1f' % float(s)))
         span_scale.grid(row=3, column=5, sticky='ew', padx=(5, 0), pady=(20, 0))
         span_scale.set(1)
-        blop_data.append(speed_var)
 
         # color label
         color = "#%06x" % random.randint(0, 0xFFFFFF)
@@ -295,18 +204,16 @@ class BlopCatalogue(ttk.Notebook):
         color_btn = tk.Button(tab, image=color_icon, command=lambda: pick_color(picked_color_lbl, color_var), border=0)
         color_btn.image = color_icon
         color_btn.grid(row=6, column=4, pady=25, padx=10)
-        blop_data.append(color_var)
 
         # mutations
         mutation_dict = {}
-        blop_data.append(mutation_dict)
         mutation_icon = ImageTk.PhotoImage(
             Image.open("./data/icons/dna3.png").resize((50, 50), Image.ANTIALIAS))
         mutation_icon_lbl = ttk.Label(tab, image=mutation_icon)
         mutation_icon_lbl.image = mutation_icon
         mutation_icon_lbl.grid(row=6, column=2, padx=(20, 0), pady=15)
 
-        mutation_btn = ttk.Button(tab, text='Mutations', command=lambda: mutate_win(self.parent, blop_data))
+        mutation_btn = ttk.Button(tab, text='Mutations', command=lambda: self.mutate_win(blop_data))
         mutation_btn.grid(row=6, column=3, pady=15)
 
         # lifespan section
@@ -326,16 +233,25 @@ class BlopCatalogue(ttk.Notebook):
                                variable=span_var, command=lambda s: span_slider.set('%0.1f' % float(s)))
         span_scale.grid(row=6, column=1, sticky='ew', padx=(5, 0), pady=(20, 0))
         span_scale.set(1)
-        blop_data.append(span_var)
+
+        blop_data['behave'] = encounter_var
+        blop_data['survive'] = survive_var
+        blop_data['replica'] = replica_var
+        blop_data['mutate'] = mutation_dict
+        blop_data['ratio'] = ratio_var
+        blop_data['color'] = color_var
+        blop_data['speed'] = speed_var
+        blop_data['span'] = span_var
+        blop_data['name'] = name_var
 
         # control buttons
-        save_btn = ttk.Button(tab, text='Save', command=lambda: save_blop(self, tab, blop_data))
+        save_btn = ttk.Button(tab, text='Save', command=lambda: self.save_blop(tab, blop_data))
         save_btn.grid(row=7, column=5, padx=10, pady=10)
 
         new_btn = ttk.Button(tab, text='New', command=lambda: self.add_filled_tab())
         new_btn.grid(row=7, column=4, padx=10, pady=10)
 
-        clone_btn = ttk.Button(tab, text='Clone', command=lambda: clone_blop(self, tab, blop_data))
+        clone_btn = ttk.Button(tab, text='Clone', command=lambda: self.clone_blop(blop_data))
         clone_btn.grid(row=7, column=3, padx=10, pady=10)
 
         info_icon = ImageTk.PhotoImage(Image.open("./data/icons/info2.png").resize((24, 24), Image.ANTIALIAS))
@@ -343,18 +259,49 @@ class BlopCatalogue(ttk.Notebook):
         finish_btn.image = info_icon
         finish_btn.grid(row=7, column=0)
 
-        self.parent.bind("<Control-m>", lambda _: mutate_win(self, self.blops_data[self.select()]))
-        self.parent.bind("<Control-c>", lambda _: clone_blop(self, tab, self.blops_data[self.select()]))
-        self.parent.bind("<Control-s>", lambda _: save_blop(self, tab, self.blops_data[self.select()]))
-        self.parent.bind("<Control-n>", lambda _: self.add_filled_tab())
-        self.parent.bind("<Control-w>", lambda _: self.close_tab())
-        self.parent.bind("<Control-i>", lambda _: show_info())
-        self.parent.bind("<Control-Tab>", lambda _: self.next_tab())
-        self.parent.bind("<Control-h>", lambda _: show_info())
+        self.root.bind("<Control-m>", lambda _: self.mutate_win(self.frame_to_data[self.select()]))
+        self.root.bind("<Control-c>", lambda _: self.clone_blop(self.frame_to_data[self.select()]))
+        self.root.bind("<Control-s>", lambda _: self.save_blop(tab, self.frame_to_data[self.select()]))
+        self.root.bind("<Control-n>", lambda _: self.add_filled_tab())
+        self.root.bind("<Control-Tab>", lambda _: self.next_tab())
+        self.root.bind("<Control-w>", lambda _: self.close_tab())
+        self.root.bind("<Control-i>", lambda _: show_info())
+        self.root.bind("<Control-h>", lambda _: show_info())
         print(blop_data)
         return blop_data
 
     __initialized = False
+
+    def handle_enter(self, tab, full_name_entry):
+        self.tab(tab, text=full_name_entry.get())
+
+    def save_blop(self, tab, data):
+        widget = self
+        tab.focus_set()
+        widget.tab(tab, text=data['name'].get())
+        if widget.proof_read(data) is not None:
+            messagebox.showerror("Invalid input", widget.proof_read(data))
+            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/fail.png").resize((15, 15)), Image.ANTIALIAS)
+            widget.tab(tab, image=saved_icon, compound='left')
+            tab.update()
+        else:
+            messagebox.showinfo("Success", "Data was recorded!")
+            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/mini_tick.png"))
+            widget.tab(tab, image=saved_icon, compound='left')
+            tab.image = saved_icon
+            widget.valid_blops[widget.select()] = data
+
+    def clone_blop(self, this_tab_data):
+        widget = self
+        widget.add_filled_tab()
+        for key, value in this_tab_data.items():
+            try:
+                if key == 'color':
+                    pass
+                else:
+                    widget.frame_to_data[widget.select()][key].set(value.get())
+            except Exception:
+                widget.frame_to_data[widget.select()][key] = copy.deepcopy(value)
 
     def next_tab(self):
         index_num = self.index(self.select())
@@ -366,26 +313,25 @@ class BlopCatalogue(ttk.Notebook):
             self.__initialize_custom_style()
             self.__inititialized = True
 
-        kwargs["style"] = "CustomNotebook"
         ttk.Notebook.__init__(self, *args, **kwargs)
+        tab = tk.Frame(self)
+        kwargs["style"] = "CustomNotebook"
         self.notebook = ttk.Notebook(parent)
         self._active = None
-        self.parent = parent
-        self.parent.resizable(False, False)
-        self.bind("<ButtonPress-1>", self.on_close_press, True)
+        self.root = parent
+        self.root.resizable(False, False)
+        self.bind("<ButtonPress-1>", self.on_close_press)
         self.bind("<ButtonRelease-1>", self.on_close_release)
-        # global blops_data, valid_blops
-        # blops_data, valid_blops = {}, {}
-        self.blops_data = {}
+        self.frame_to_data = {}
         self.valid_blops = {}
-        tab = tk.Frame(self)
+
         self.add(tab, text='first kind')
         self.select(len(self.tabs()) - 1)
         self.fill_tab(tab)
 
     def add_filled_tab(self):
         if len(self.tabs()) > max_tabs - 1:
-            messagebox.showerror("Tab overrun", "You cannot create more than {max_tabs} tabs!")
+            messagebox.showerror('Tab overrun', f'You cannot create more than {max_tabs} tabs!')
             return
         new_tab = tk.Frame(self)
         self.add(new_tab, text="new kind")
@@ -402,7 +348,9 @@ class BlopCatalogue(ttk.Notebook):
             messagebox.showerror("Destroying root", "You cannot delete the last tab!")
             return
         if messagebox.askokcancel("Quit", "Do you want to close this tab? All entered data will be erased!"):
-            self.forget(self.select())
+            tab_id = self.select()
+            self.forget(tab_id)
+            self.valid_blops.pop(tab_id, None)
 
     def on_close_press(self, event):
         if len(self.tabs()) == 1:
@@ -418,6 +366,7 @@ class BlopCatalogue(ttk.Notebook):
                 self._active = index
                 self.update()
                 self.on_close_release(event)
+                self.valid_blops.pop(index, None)
 
     def on_close_release(self, event):
         if not self.instate(['pressed']):
@@ -433,23 +382,68 @@ class BlopCatalogue(ttk.Notebook):
         self.state(["!pressed"])
         self._active = None
 
+    def mutate_win(self, data):
+        widget = self
+        mini_root = tk.Toplevel(widget)
+        mini_root.grab_set()
+        mini_root.focus_set()
+        mini_root.title('Mutations')
+        mini_root.resizable(False, False)
+        mini_root.iconphoto(False, tk.PhotoImage(file='./data/icons/dna4.png'))
+
+        mini_root.bind("<Escape>", lambda _: mini_root.destroy())
+        mini_root.bind("<Control-w>", lambda _: mini_root.destroy())
+        mini_root.bind("<Control-s>", lambda _: save_mute(data['mutate'], new_dict, mini_root))
+
+        x = 0
+        new_dict = {}
+        valid = list(widget.valid_blops.items())
+        if len(valid) == 0 or (len(valid) == 1 and widget.select() in widget.valid_blops):
+            show_message(mini_root)
+            return
+
+        text_entries = []
+        for key, value in valid:
+            if key != widget.select():
+                hex_color = value['color'].get()
+                contrast_font = contrast(hex_color)
+                ttk.Label(mini_root, text=value['name'].get(), background=hex_color, foreground=contrast_font, width=12,
+                          justify='center').grid(row=x, column=0)
+                text_var = tk.StringVar(mini_root)
+                text_entries.append(
+                    ttk.Entry(mini_root, width=10, font=("Helvetica", 10), textvariable=text_var, justify='right'))
+
+                text_entries[-1].grid(row=x, column=1, pady=5)
+                present = data['mutate'].get(key)
+
+                text_to_insert = "" if (present is None) else present
+
+                text_entries[-1].insert(0, text_to_insert)
+                new_dict[key] = text_var
+                x += 1
+
+        cancel_btn = ttk.Button(mini_root, text="Cancel", command=lambda: mini_root.destroy())
+        cancel_btn.grid(row=x, column=0, padx=10, pady=10)
+
+        save_btn = ttk.Button(mini_root, text='Save', command=lambda: save_mute(data['mutate'], new_dict, mini_root))
+        save_btn.grid(row=x, column=1, padx=10, pady=10)
+
     def proof_read(self, data):
-        print("len:" + str(len(data)))
-        if data[0].get() == "":
+        if data['name'].get() == "":
             return "No name is saved!"
-        if data[0].get() in self.valid_blops.values():
+        if data['name'].get() in self.valid_blops.values():
             return "This name is already taken"
         # survival must be < replication
-        if data[3].get() > data[4].get():
+        if data['survive'].get() > data['replica'].get():
             return "Replication Q is not bigger than Survival Q"
-        if not data[1].get().isdigit():
+        if not data['ratio'].get().isdigit():
             return "Share value is not digit"
-        share = float(data[1].get())
+        share = float(data['ratio'].get())
         if share > 100:
             return "Share exceeds 100%"
         cur_sum = 0
         for _, value in self.valid_blops.items():
-            cur_sum += float(value[1].get())
+            cur_sum += float(value['ratio'].get())
         if share + cur_sum > 100:
             return "Total apparition chance for all kinds exceeds 100%"
         print("All is fine")
