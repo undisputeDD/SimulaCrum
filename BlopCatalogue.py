@@ -3,7 +3,7 @@ import random
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-
+import json
 from PIL import Image, ImageTk
 from tkcolorpicker import askcolor
 
@@ -76,7 +76,6 @@ class BlopCatalogue(ttk.Notebook):
         name_field = ttk.Entry(tab, width=12, font=("Helvetica", 10), textvariable=name_var)
         name_field.grid(row=1, column=1)
         name_field.bind("<Return>", lambda _: self.handle_enter(tab, name_field))
-        name_field.focus_set()
 
         # population share
         ratio_lbl = ttk.Label(tab, text="Share")
@@ -304,8 +303,6 @@ class BlopCatalogue(ttk.Notebook):
         new_tab.focus_set()
         return new_tab
 
-    def valid_entries(self):
-        return self.valid_blops
 
     def close_tab(self):
         if len(self.tabs()) == 1:
@@ -404,6 +401,7 @@ class BlopCatalogue(ttk.Notebook):
             return "Share value is not digit"
         share = float(data['ratio'].get())
         if share > 100:
+            print("share now: " + str(share))
             return "Share exceeds 100%"
         cur_sum = 0
         for _, value in self.valid_blops.items():
