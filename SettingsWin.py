@@ -7,8 +7,13 @@ import BlopCatalogue
 import ntpath
 
 
+def hello():
+    print("hello!")
+
+
 def show_btn(dev_button):
     dev_button.grid(row=7, column=2, pady=15, padx=10)
+    dev_button.focus_set()
 
 
 def show_template_description(widget, var):
@@ -31,14 +36,9 @@ def show_template_description(widget, var):
         message.resizable(False, False)
         message.iconphoto(False, tk.PhotoImage(file='./data/icons/scenario.png'))
         image = tk.PhotoImage(data=base64)
-        lbl = ttk.Label(message, image=image, text=info, width=100, compound='top').pack()
+        lbl = ttk.Label(message, image=image, text=info, width=100, compound='top')
+        lbl.pack()
         lbl.image = image
-
-
-def show_info(file):
-    with open(f'./data/manuals/{file}.txt') as file:
-        message = file.read()
-    messagebox.showinfo("Help?", message)
 
 
 def get_options(option_menu):
@@ -50,14 +50,19 @@ def get_options(option_menu):
     return items
 
 
+def show_info(file):
+    with open(f'./data/manuals/{file}.txt') as file:
+        message = file.read()
+    messagebox.showinfo("Help?", message)
+
+
 class Settings(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.frame = tk.Frame(self)
         # self.geometry("800x900")
         self.title("Settings")
-        self.iconphoto(False, tk.PhotoImage(file='./data/icons/settings.png'))
+        self.iconphoto(True, tk.PhotoImage(file='./data/icons/settings.png'))
         self.data = {}
         self.kinds = {}
         self.widgets = {}
@@ -71,8 +76,10 @@ class Settings(tk.Tk):
         self.create_widgets()
 
     def fill_base(self):
-        self.base_data['speed'] = 19.5
-        self.base_data['winsize'] = 800
+        speed_var = tk.DoubleVar(self, value=19.5)
+        self.base_data['speed'] = speed_var
+        winsize_var = tk.DoubleVar(self, value=800)
+        self.base_data['winsize'] = winsize_var
 
     def dev_window(self):
         messagebox.showwarning("Attention!",
@@ -85,12 +92,47 @@ class Settings(tk.Tk):
         root.title("Developer settings")
         root.iconphoto(False, tk.PhotoImage(file='./data/icons/incognito.png'))
 
+        # speed
         speed_lbl = ttk.Label(root, text='Absolute speed')
-        speed_lbl.grid(row=0, column=0)
+        speed_lbl.grid(row=1, column=0, padx=15, pady=15)
+        # speed_var = tk.StringVar(root)
+        # speed_var.set(self.base_data['speed'].get())
+        speed_entry = ttk.Entry(root, textvariable=self.base_data['speed'], justify='right', font=("Helvetica", 10),
+                                width=10)
+        speed_entry.grid(row=1, column=1, padx=15)
 
-        speed_var = tk.StringVar(root)
-        speed_entry = ttk.Entry(root, text=self.base_data['speed'], textvariable=speed_var)
-        speed_entry.grid(row=0, column=1)
+        # size
+        size_lbl = ttk.Label(root, text='Window size')
+        size_lbl.grid(row=2, column=0, padx=15, pady=15)
+        # size_var = tk.StringVar(self, value=str(self.base_data['winsize']))
+        size_entry = ttk.Entry(root, textvariable=self.base_data['winsize'], justify='right', font=("Helvetica", 10),
+                               width=10)
+        size_entry.grid(row=2, column=1, padx=15)
+
+        configs = {'speed': self.base_data['speed'], 'winsize': self.base_data['winsize']}
+
+        icon = ImageTk.PhotoImage(Image.open("./data/icons/hacker.png").resize((300, 300), Image.ANTIALIAS))
+        lbl = ttk.Label(root, image=icon)
+        lbl.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+        lbl.image = icon
+
+        # control buttons
+        save_btn = ttk.Button(root, text='Save', command=lambda: self.update_config(root, configs))
+        save_btn.grid(row=3, column=1, padx=10, pady=10)
+
+        cancel_btn = ttk.Button(root, text='Cancel', command=lambda: root.destroy())
+        cancel_btn.grid(row=3, column=0, padx=10, pady=10)
+
+        # info_icon = ImageTk.PhotoImage(Image.open("./data/icons/info2.png").resize((24, 24), Image.ANTIALIAS))
+        # info_btn = tk.Button(root, command=lambda: show_info('template'), image=info_icon, border=0)
+        # info_btn.image = info_icon
+        # info_btn.grid(row=2, column=0)
+
+    def update_config(self, root, data):
+        for key, value in data.items():
+            # self.base_data[key] = value
+            print(self.base_data[key].get())
+        root.destroy()
 
     def template_window(self):
         mini_root = tk.Toplevel(self)
@@ -118,8 +160,6 @@ class Settings(tk.Tk):
 
         scenario_var = tk.StringVar(mini_root)
         scenario_options = ttk.OptionMenu(mini_root, scenario_var, *paths)
-        # self.widgets['scenario'] = scenario_options
-        # self.data['scenario'] = scenario_var
         scenario_options.grid(row=1, column=1, padx=(0, 0))
 
         folder_icon = ImageTk.PhotoImage(Image.open("./data/icons/folder.png").resize((55, 55), Image.ANTIALIAS))
@@ -135,6 +175,7 @@ class Settings(tk.Tk):
         scenario_btn.image = scenario_icon
         scenario_btn.grid(row=1, column=2, padx=(0, 20), pady=8)
 
+        self.widgets['scenario'] = scenario_options
         # control buttons
         save_btn = ttk.Button(mini_root, text='Save', command=lambda: self.load_config_file(mini_root, scenario_var))
         save_btn.grid(row=2, column=2, padx=10, pady=10)
@@ -159,26 +200,13 @@ class Settings(tk.Tk):
                                                   "the bottom of BlopKind tab.")
             return
 
-        print(len(self.kinds))
-        if self.data['name'].get() in get_options(self.widgets['scenario']):
+        print(str(len(self.kinds)) + " :kinds")
+        paths = glob.glob("./data/scenarios/*.crum")
+        paths[:] = [ntpath.basename(s).replace('.crum', '') for s in paths]
+        if self.data['name'].get() in paths:
             messagebox.showerror("Name conflict!", "Configuration with this name already exists!")
             return
         sum_prob = 0
-        if self.data['scenario'].get() != "None":
-            q = messagebox.askyesnocancel("We are confused",
-                                          "You've chosen lib scenario, but haven't loaded it. Do you want "
-                                          "us to load it for you and ignore entered configurations?",
-                                          icon='warning', default='no')
-            if q:
-                print("Yes")
-                self.decode_template()
-                return
-            if q is None:
-                print("Cancel")
-                return
-            else:
-                print("No")
-
         benchers = []  # those who will appear as a result of mutations
         for key, value in self.kinds.items():
             ratio = float(value['ratio'].get())
@@ -391,7 +419,7 @@ class Settings(tk.Tk):
         run_button.grid(row=7, column=5, pady=15, padx=10)
 
         info_icon = ImageTk.PhotoImage(Image.open("./data/icons/info2.png").resize((24, 24), Image.ANTIALIAS))
-        info_btn = tk.Button(self, command=lambda _: show_info('catalogue'), image=info_icon, border=0)
+        info_btn = tk.Button(self, command=lambda: show_info('catalogue'), image=info_icon, border=0)
         info_btn.image = info_icon
         info_btn.grid(row=7, column=0)
 
