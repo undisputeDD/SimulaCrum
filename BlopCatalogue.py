@@ -3,7 +3,6 @@ import random
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-import json
 from PIL import Image, ImageTk
 from tkcolorpicker import askcolor
 
@@ -238,33 +237,16 @@ class BlopCatalogue(ttk.Notebook):
     def handle_enter(self, tab, full_name_entry):
         self.tab(tab, text=full_name_entry.get())
 
-    def save_blop(self, tab, data):
-        widget = self
-        tab.focus_set()
-        widget.tab(tab, text=data['name'].get())
-        if widget.proof_read(data) is not None:
-            messagebox.showerror("Invalid input", widget.proof_read(data))
-            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/fail.png").resize((15, 15)), Image.ANTIALIAS)
-            widget.tab(tab, image=saved_icon, compound='left')
-            tab.update()
-        else:
-            messagebox.showinfo("Success", "Data was recorded!")
-            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/mini_tick.png"))
-            widget.tab(tab, image=saved_icon, compound='left')
-            tab.image = saved_icon
-            widget.valid_blops[widget.select()] = data
-
     def clone_blop(self, this_tab_data):
-        widget = self
-        widget.add_filled_tab()
+        self.add_filled_tab()
         for key, value in this_tab_data.items():
             try:
                 if key == 'color':
                     pass
                 else:
-                    widget.frame_to_data[widget.select()][key].set(value.get())
+                    self.frame_to_data[self.select()][key].set(value.get())
             except Exception:
-                widget.frame_to_data[widget.select()][key] = copy.deepcopy(value)
+                self.frame_to_data[self.select()][key] = copy.deepcopy(value)
 
     def next_tab(self):
         index_num = self.index(self.select())
@@ -282,6 +264,7 @@ class BlopCatalogue(ttk.Notebook):
         self.notebook = ttk.Notebook(parent)
         self._active = None
         self.root = parent
+        self.apparition = 0
         self.root.resizable(False, False)
         self.bind("<ButtonPress-1>", self.on_close_press)
         self.bind("<ButtonRelease-1>", self.on_close_release)
@@ -303,7 +286,6 @@ class BlopCatalogue(ttk.Notebook):
         new_tab.focus_set()
         return new_tab
 
-
     def close_tab(self):
         if len(self.tabs()) == 1:
             messagebox.showerror("Destroying root", "You cannot delete the last tab!")
@@ -311,7 +293,19 @@ class BlopCatalogue(ttk.Notebook):
         if messagebox.askokcancel("Quit", "Do you want to close this tab? All entered data will be erased!"):
             tab_id = self.select()
             self.forget(tab_id)
+            print("<><!><>")
+            print(self.valid_blops)
+            cur_sum = 0
+            for _, value in self.valid_blops.items():
+                cur_sum += float(value['ratio'].get())
+            print(cur_sum)
             self.valid_blops.pop(tab_id, None)
+            cur_sum = 0
+            for _, value in self.valid_blops.items():
+                cur_sum += float(value['ratio'].get())
+            print(cur_sum)
+            print(self.valid_blops)
+            print("<><!><>")
 
     def on_close_press(self, event):
         if len(self.tabs()) == 1:
@@ -327,7 +321,11 @@ class BlopCatalogue(ttk.Notebook):
                 self._active = index
                 self.update()
                 self.on_close_release(event)
+                print("<><!><>")
+                print((self.valid_blops))
                 self.valid_blops.pop(index, None)
+                print((self.valid_blops))
+                print("<><!><>")
 
     def on_close_release(self, event):
         if not self.instate(['pressed']):
@@ -389,26 +387,47 @@ class BlopCatalogue(ttk.Notebook):
         save_btn = ttk.Button(mini_root, text='Save', command=lambda: save_mute(data['mutate'], new_dict, mini_root))
         save_btn.grid(row=x, column=1, padx=10, pady=10)
 
+    def save_blop(self, tab, data):
+        tab.focus_set()
+        self.tab(tab, text=data['name'].get())
+        check_result = self.proof_read(data)
+        if check_result is not None:
+            messagebox.showerror("Invalid input", check_result)  # error message
+            # cancel temporary icon
+            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/fail.png").resize((15, 15)), Image.ANTIALIAS)
+            self.tab(tab, image=saved_icon, compound='left')
+            tab.update()
+        else:
+            # success icon
+            messagebox.showinfo("Success", f'Data was recorded! Total apparition chance is {self.apparition}%')
+            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/mini_tick.png"))
+            self.tab(tab, image=saved_icon, compound='left')
+            tab.image = saved_icon
+            self.valid_blops[self.select()] = data
+
     def proof_read(self, data):
-        if data['name'].get() == "":
-            return "No name is saved!"
-        if data['name'].get() in self.valid_blops.values():
-            return "This name is already taken"
-        # survival must be < replication
-        if data['survive'].get() > data['replica'].get():
-            return "Replication Q is not bigger than Survival Q"
+        this_tab_id = self.select()
+        # dependant on others
+        for key, value in self.valid_blops.items():
+            if key != this_tab_id:
+                if data['name'].get() == value['name'].get():
+                    return "This name is already taken"
         if not data['ratio'].get().isdigit():
             return "Share value is not digit"
         share = float(data['ratio'].get())
-        if share > 100:
-            print("share now: " + str(share))
-            return "Share exceeds 100%"
         cur_sum = 0
-        for _, value in self.valid_blops.items():
-            cur_sum += float(value['ratio'].get())
+        for key, value in self.valid_blops.items():
+            if key != this_tab_id:
+                cur_sum += float(value['ratio'].get())
         if share + cur_sum > 100:
-            return "Total apparition chance for all kinds exceeds 100%"
-        print("All is fine")
+            return f'Total apparition chance for all kinds exceeds 100% ({int(share + cur_sum)}%)'
+        else:
+            self.apparition = share + cur_sum
+        # individual checks
+        if data['name'].get() == "":
+            return "No name is saved!"
+        if data['survive'].get() > data['replica'].get():
+            return "Replication Q is not bigger than Survival Q"
         return None
 
     def __initialize_custom_style(self):
