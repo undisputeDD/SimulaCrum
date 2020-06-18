@@ -53,6 +53,26 @@ class Button:
         self._action()
 
 
+def decode_template(filename):
+    with open(filename) as file:
+        contents = file.read()
+    data = []
+    catalogue = {}
+    chapters = contents.split('&')
+    for line in chapters[0].split("\n"):
+        splits = line.split('|')
+        data[splits[0]] = splits[1]
+
+    for kinds in chapters[1].split("@"):
+        blop_kind = {}
+        for line2 in kinds.split("\n"):
+            splits = line2.split('|')
+            blop_kind[splits[0]] = splits[1]
+        catalogue.append(blop_kind)
+    data.append(catalogue)
+    return data
+
+
 def start_func():
     print('! START IS CALLED !')
     # global menu_mode
