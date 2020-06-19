@@ -5,6 +5,8 @@ menu_button_obj = []
 simulation_button_obj = []
 menu_mode = 1
 
+# Array of species
+organisms = []
 
 class Button:
     def __init__(self, msg, x, y, w, h, ic, ac, startText, textSurf, textRect, action=None, image=None):
@@ -82,7 +84,20 @@ def decode_template(filename):
 
 
 def start_simulation_func():
-    pass
+    data, catalogue = decode_template('Fabula.crum')
+    field = []
+    for i in range(FIELD_SIZE):
+        vert = []
+        for j in range(FIELD_SIZE):
+            vert.append(0)
+        field.append(vert)
+
+    print(data)
+    print(catalogue)
+    for i in range(FIELD_SIZE):
+        for j in range(FIELD_SIZE):
+            print(str(field[i][j]) + ' ', end='')
+        print()
 
 
 def pause_simulation_func():
@@ -150,11 +165,7 @@ def draw_menu_condition():
     for button in menu_button_obj:
         if button.get_x() + button.get_w() > mouse_pos[0] > button.get_x() and button.get_y() + button.get_h() > mouse_pos[1] > button.get_y():
             pygame.draw.rect(screen, button.get_ac(), (button.get_x(), button.get_y(), button.get_w(), button.get_h()))
-            if click[0] == 1 and button.get_action() != None:
-                if button.get_action() == start_func:
-                    for check_button in menu_button_obj:
-                        pygame.draw.rect(screen, GREY, (check_button.get_x(), check_button.get_y(), check_button.get_w(), check_button.get_h()))
-                    pygame.display.update()  # To see if buttons are gone
+            if click[0] == 1 and button.get_action() is not None:
                 button.perform_action()
         else:
             pygame.draw.rect(screen, button.get_ic(), (button.get_x(), button.get_y(), button.get_w(), button.get_h()))
@@ -167,7 +178,7 @@ def draw_simulation_condition():
 
     for button in simulation_button_obj:
         if button.get_x() + button.get_w() > mouse_pos[0] > button.get_x() and button.get_y() + button.get_h() > mouse_pos[1] > button.get_y():
-            if click[0] == 1 and button.get_action() != None:
+            if click[0] == 1 and button.get_action() is not None:
                 button.perform_action()
         screen.blit(button.get_image(), button.get_textRect())
 
@@ -204,6 +215,9 @@ img = pygame.image.load('images/background.png')
 img_rect = pygame.Rect((0, 0), (FIELD_WIDTH, FIELD_HEIGHT))
 img = pygame.transform.scale(img, (FIELD_WIDTH, FIELD_HEIGHT))
 
+# Size of simulation field
+FIELD_SIZE = 10
+
 PANEL_WIDTH = WINDOW_WIDTH - FIELD_WIDTH
 PANEL_HEIGHT = WINDOW_HEIGHT
 panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
@@ -220,9 +234,9 @@ create_button('Settings', 796, 546, 152, 30, LIGHT_BLUE, BLUE_GREY, settings_fun
 create_button('Quit', 796, 614, 152, 30, LIGHT_BLUE, BLUE_GREY, quit_func)
 
 # Adding simulation buttons
-create_simulation_button('START', 796, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, start_simulation_func)
-create_simulation_button('PAUSE', 796 + 76, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, pause_simulation_func)
-create_simulation_button('END', 796 + 76 * 2, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, end_simulation_func)
+create_simulation_button('START', 720 + 47.5, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, start_simulation_func)
+create_simulation_button('PAUSE', 720 + 47.5 + 38 + 47.5, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, pause_simulation_func)
+create_simulation_button('END', 720 + 47.5 + 38 + 47.5 + 38 + 47.5, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, end_simulation_func)
 
 # White test rectangle setting
 white_rect = pygame.Surface((32, 32))
@@ -254,9 +268,9 @@ while True:
     if menu_mode == 1:
         draw_menu_condition()
         simulation_button_obj = []
-        create_simulation_button('START', 796, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, start_simulation_func)
-        create_simulation_button('PAUSE', 796 + 76, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, pause_simulation_func)
-        create_simulation_button('END', 796 + 76 * 2, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, end_simulation_func)
+        create_simulation_button('START', 720 + 47.5, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, start_simulation_func)
+        create_simulation_button('PAUSE', 720 + 47.5 + 38 + 47.5, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, pause_simulation_func)
+        create_simulation_button('END', 720 + 47.5 + 38 + 47.5 + 38 + 47.5, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, end_simulation_func)
     else:
         draw_simulation_condition()
         menu_button_obj = []
