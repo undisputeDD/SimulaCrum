@@ -188,6 +188,18 @@ def draw_simulation_condition():
 
     screen.blit(background_panel, background_panel_rect)
 
+    rect_grid_size = FIELD_HEIGHT / FIELD_SIZE
+    for i in range(1, FIELD_SIZE):
+        point1 = rect_grid_size * i, 0
+        point2 = rect_grid_size * i, FIELD_HEIGHT
+        pygame.draw.line(screen, BLACK, point1, point2)
+
+        point1 = 0, rect_grid_size * i
+        point2 = FIELD_WIDTH, rect_grid_size * i
+        pygame.draw.line(screen, BLACK, point1, point2)
+
+    pygame.display.update()
+
 
 # Initialisation of a program
 successes, failures = pygame.init()
