@@ -2,11 +2,12 @@ import pygame
 
 # Flags and global data
 menu_button_obj = []
+simulation_button_obj = []
 menu_mode = 1
 
 
 class Button:
-    def __init__(self, msg, x, y, w, h, ic, ac, startText, textSurf, textRect, action=None):
+    def __init__(self, msg, x, y, w, h, ic, ac, startText, textSurf, textRect, action=None, image=None):
         self._msg = msg
         self._x = x
         self._y = y
@@ -18,6 +19,7 @@ class Button:
         self._textSurf = textSurf
         self._textRect = textRect
         self._action = action
+        self._image = image
 
     def get_x(self):
         return self._x
@@ -49,6 +51,9 @@ class Button:
     def get_action(self):
         return self._action
 
+    def get_image(self):
+        return self._image
+
     def perform_action(self):
         self._action()
 
@@ -76,18 +81,23 @@ def decode_template(filename):
     return data, catalogue
 
 
+def start_simulation_func():
+    pass
+
+
+def pause_simulation_func():
+    pass
+
+
+def end_simulation_func():
+    global menu_mode
+    menu_mode = 1
+
+
 def start_func():
     print('! START IS CALLED !')
-    data, catalogue = decode_template('Fabula.crum')
-    for element in data:
-        print(element + ' ' + data[element])
-
-    print()
-
-    for element in catalogue:
-        print(element)
-
-    pygame.time.wait(5000)
+    global menu_mode
+    menu_mode = 0
 
 
 def settings_func():
@@ -111,7 +121,29 @@ def create_button(msg, x, y, w, h, ic, ac, action):
     menu_button_obj.append(button)
 
 
-def draw_buttons():
+def create_simulation_button(msg, x, y, w, h, ic, ac, action):
+    # Setting up button`s text properties
+
+    file = ""
+    if action == start_simulation_func:
+        file = 'start.png'
+    elif action == pause_simulation_func:
+        file = 'pause.jpg'
+    elif action == end_simulation_func:
+        file = 'stop.png'
+    else:
+        print("!!! Error creating simulation buttons !!!")
+
+    img = pygame.image.load('images/' + file)
+    img_rect = pygame.Rect((x, y), (w, h))
+    img_surf = pygame.Surface((w, h))
+    img = pygame.transform.scale(img, (w, h))
+
+    button = Button(msg, x, y, w, h, ic, ac, None, img_surf, img_rect, action, img)
+    simulation_button_obj.append(button)
+
+
+def draw_menu_condition():
     mouse_pos = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
 
@@ -120,16 +152,30 @@ def draw_buttons():
             pygame.draw.rect(screen, button.get_ac(), (button.get_x(), button.get_y(), button.get_w(), button.get_h()))
             if click[0] == 1 and button.get_action() != None:
                 if button.get_action() == start_func:
-                    global menu_mode
-                    menu_mode = 0
                     for check_button in menu_button_obj:
-                        #check_button.get_textSurf().fill(GREY) <- Maybe no need
                         pygame.draw.rect(screen, GREY, (check_button.get_x(), check_button.get_y(), check_button.get_w(), check_button.get_h()))
                     pygame.display.update()  # To see if buttons are gone
                 button.perform_action()
         else:
             pygame.draw.rect(screen, button.get_ic(), (button.get_x(), button.get_y(), button.get_w(), button.get_h()))
         screen.blit(button.get_textSurf(), button.get_textRect())
+
+
+def draw_simulation_condition():
+    mouse_pos = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+
+    for button in simulation_button_obj:
+        if button.get_x() + button.get_w() > mouse_pos[0] > button.get_x() and button.get_y() + button.get_h() > mouse_pos[1] > button.get_y():
+            if click[0] == 1 and button.get_action() != None:
+                button.perform_action()
+        screen.blit(button.get_image(), button.get_textRect())
+
+    background_panel = pygame.Surface((FIELD_WIDTH, FIELD_HEIGHT))
+    background_panel.fill(LIGHT_BLUE)
+    background_panel_rect = pygame.Rect((0, 0), (FIELD_WIDTH, FIELD_HEIGHT))
+
+    screen.blit(background_panel, background_panel_rect)
 
 
 # Initialisation of a program
@@ -151,7 +197,7 @@ LIGHT_BLUE = (173, 216, 230)
 GREY = (58, 58, 60)
 BLUE_GREY = (112, 128, 144)
 
-# Background settind
+# Background setting
 FIELD_WIDTH = WINDOW_HEIGHT
 FIELD_HEIGHT = WINDOW_HEIGHT
 img = pygame.image.load('images/background.png')
@@ -168,10 +214,15 @@ panel_rect = pygame.Rect((FIELD_WIDTH, 0), (PANEL_WIDTH, PANEL_HEIGHT))
 clock = pygame.time.Clock()
 FPS = 60  # Frames per second.
 
-# Adding buttons
+# Adding menu buttons
 create_button('Start', 796, 478, 152, 30, LIGHT_BLUE, BLUE_GREY, start_func)
 create_button('Settings', 796, 546, 152, 30, LIGHT_BLUE, BLUE_GREY, settings_func)
 create_button('Quit', 796, 614, 152, 30, LIGHT_BLUE, BLUE_GREY, quit_func)
+
+# Adding simulation buttons
+create_simulation_button('START', 796, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, start_simulation_func)
+create_simulation_button('PAUSE', 796 + 76, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, pause_simulation_func)
+create_simulation_button('END', 796 + 76 * 2, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, end_simulation_func)
 
 # White test rectangle setting
 white_rect = pygame.Surface((32, 32))
@@ -201,9 +252,13 @@ while True:
 
     # Drawing buttons
     if menu_mode == 1:
-        draw_buttons()
+        draw_menu_condition()
+        simulation_button_obj = []
+        create_simulation_button('START', 796, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, start_simulation_func)
+        create_simulation_button('PAUSE', 796 + 76, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, pause_simulation_func)
+        create_simulation_button('END', 796 + 76 * 2, 546, 38, 38, LIGHT_BLUE, BLUE_GREY, end_simulation_func)
     else:
-        menu_mode = 1  # Hard code to bring buttons back
+        draw_simulation_condition()
         menu_button_obj = []
         create_button('Start', 796, 478, 152, 30, LIGHT_BLUE, BLUE_GREY, start_func)
         create_button('Settings', 796, 546, 152, 30, LIGHT_BLUE, BLUE_GREY, settings_func)
