@@ -1,109 +1,110 @@
-import pygame
 import random
-import tkinter as tk
-from tkinter import *
-import tkinter.ttk as ttk
-from PIL import Image
-from PIL import ImageTk
-import os
+import pygame
 import Blop
 import Food
 
-def hello():
-    print("hello!")
+width = height = 800
+amount_food = 50
+amount_creatures = 50
 
 
-root = tk.Tk()
-root.iconphoto(False, tk.PhotoImage(file="../data/icons/angry_bird.png"))
-root.title("Simulacrum")
-embed = tk.Frame(root, width=500, heigh=500)  # creates embed frame for pygame window
-embed.grid(columnspan=(600), rowspan=500)  # Adds grid
-embed.grid(row=0, column=1)  # packs window to the left
-buttonwin = tk.Frame(root, width=200, height=500)
-buttonwin.grid(row=0, column=0)
-os.environ['SDL_WINDOWID'] = str(embed.winfo_id())
-os.environ['SDL_VIDEODRIVER'] = 'windib'
-screen = pygame.display.set_mode((500, 500))
-# screen.fill(pygame.Color(25, 155, 255))
-background_image = pygame.image.load("../data/icons/space.png").convert()
-background_image = pygame.transform.scale(background_image, (500, 500))
-screen.blit(background_image, [0, 0])
-for i in range(6):
-    blop = Blop.Blop(screen)
-    blop.draw(40 + round(random.random() * 390), 50 + round(random.random() * 390))
-    food = Food.Food(screen)
-    food.draw(40 + round(random.random() * 390), 50 + round(random.random() * 390))
+def decode_template(filename):
+    with open(filename) as file:
+        contents = file.read()
+    data = {}
+    catalogue = {}
+    chapters = contents.split('&')
+    for line in chapters[0].strip().split("\n"):
+        splits = line.strip().split('|')
+        data[splits[0]] = splits[1]
+
+    for kind in chapters[1].split("@"):
+        blop_kind = {}
+        for line2 in kind.strip().split("\n"):
+            splits = line2.strip().split('|')
+            blop_kind[splits[0]] = splits[1]
+        catalogue[blop_kind['name']] = blop_kind
+    return data, catalogue
 
 
-root.resizable(False, False)
-pygame.display.init()
-pygame.display.update()
+class Engine:
 
-# menu
-menubar = Menu(root)
-# create a pulldown menu, and add it to the menu bar
-filemenu = Menu(menubar, tearoff=0)
-filemenu.add_command(label="Open", command=hello)
-filemenu.add_command(label="Save", command=hello)
-filemenu.add_command(label="Snap", command=hello)
-filemenu.add_separator()
-filemenu.add_command(label="Exit", command=root.quit)
-menubar.add_cascade(label="File", menu=filemenu)
+    def __init__(self, sim_data, blop_catalogue):
+        pygame.init()
+        self.sim_data = sim_data
+        self.catalogue = blop_catalogue
+        self.food_list = []
+        self.food_coords = []
+        self.blop_list = []
+        self.ticks_max = sim_data['speed']
+        self.style = sim_data['design']
+        self.screen = pygame.display.set_mode((width, height))
+        self.ticks = 0
 
-# create more pulldown menus
-editmenu = Menu(menubar, tearoff=0)
-editmenu.add_command(label="Cut", command=hello)
-editmenu.add_command(label="Copy", command=hello)
-editmenu.add_command(label="Paste", command=hello)
-menubar.add_cascade(label="Edit", menu=editmenu)
-helpmenu = Menu(menubar, tearoff=0)
-helpmenu.add_command(label="Manual", command=hello)
-helpmenu.add_command(label="About", command=hello)
-helpmenu.add_command(label="Donate", command=hello)
-menubar.add_cascade(label="Help", menu=helpmenu)
+    def tick(self):
+        if self.ticks >= self.ticks_max:
+            self.clear_screen()
 
-# display the menu
-root.config(menu=menubar)
+        for blop in self.blop_list:
+            x, y = blop.move()
+            new_foods = []
+            for food in self.food_list:
+                f_x, f_y = food.x, food.y
+                if (x - 10 <= f_x <= x + 10) and (y - 10 <= f_y <= y + 10):
+                    print("Eaten!")
+                    blop.energy += 1
+                else:
+                    new_foods.append(food)
+            self.food_list = new_foods
+            # if (x, y) in
 
-label = tk.Label(buttonwin, text='Scenarios')
-label.config(font=("Calibri", 11))
-label.grid(row=0, column=0, columnspan=3, pady=5)
+        self.ticks += 1
 
-scenario = ttk.Combobox(buttonwin)
-scenario['values'] = ("Natural Selection", "Altruism", "Survival")
-# scenario.pack(side = TOP)
-scenario.grid(row=1, column=0, pady=10, padx=10, columnspan=3)
+    def generate_food(self):
+        for i in range(amount_food):
+            food = Food.Food(self.screen, self.sim_data['design'])
+            self.food_list.append(food)
+            x = 20 + round(random.random() * width)
+            y = 20 + round(random.random() * height)
+            self.food_coords.append((x, y))
+            food.draw(x, y)
 
-label = tk.Label(buttonwin, text='Design')
-label.config(font=("Calibri", 11))
-label.grid(row=2, column=0, columnspan=3, pady=5)
+    def fill_board(self):
+        style = self.sim_data['design'].get()
 
-regime = ttk.Combobox(buttonwin)
-regime.set('Choose your regime')
-regime['values'] = ("Space", "Field", "Human")
-regime.grid(row=3, column=0, pady=10, padx=10, columnspan=3)
+        background_image = pygame.image.load(f'./data/icons/backgrounds/{style}.png').convert()
+        background_image = pygame.transform.scale(background_image, (width, height))
+        self.screen.blit(background_image, [0, 0])
 
-label = tk.Label(buttonwin, text='Speed')
-label.config(font=("Calibri", 11))
-label.grid(row=4, column=0, columnspan=3)
+        for key, kind in self.catalogue.items():
+            for _ in range(int(amount_creatures * kind['share'])):
+                blop = Blop.Blop(self.screen, style, kind)
+                self.blop_list.append(blop)
 
-speed = Scale(buttonwin, from_=0.5, to=5, orient=tk.HORIZONTAL, resolution=0.1, length=170)
-speed.grid(row=6, column=0, pady=5, columnspan=3)
+        pygame.display.init()
+        pygame.display.update()
 
-play_icon = ImageTk.PhotoImage(Image.open("../data/icons/play.png").resize((40, 40), Image.ANTIALIAS))
-start_btn = Button(buttonwin, text=' Start', command=hello, image=play_icon, border='0')
-start_btn.grid(row=8, column=0, pady=35)
+    def clear_screen(self):
+        background_image = pygame.image.load(f'./data/icons/backgrounds/{self.style}.png').convert()
+        background_image = pygame.transform.scale(background_image, (width, height))
+        self.screen.blit(background_image, [0, 0])
+        self.generate_food()
+        self.review_blops()
 
-pause_icon = ImageTk.PhotoImage(Image.open("../data/icons/pause2.png").resize((40, 40), Image.ANTIALIAS))
-pause_btn = Button(buttonwin, text=' Pause', command=hello, image=pause_icon, border="0")
-pause_btn.grid(row=8, column=1, pady=35)
+    def review_blops(self):
+        new_blop_list = []
+        for blop in self.blop_list:
+            if blop.energy < blop.kind['survive']:
+                print("Died!")
+            else:
+                new_blop_list.append(blop)
+                if blop.energy >= blop.kind['replica']:
+                    kind = None # треба згенерувати по мутаціях, визначити, хто. Мутації це словник, може бути пустий
+                    newbie = Blop.Blop(self.screen, self.style, kind)
+                    new_blop_list.append(newbie)
 
-stop_icon = ImageTk.PhotoImage(Image.open("../data/icons/stop.png").resize((40, 40), Image.ANTIALIAS))
-finish_btn = Button(buttonwin, command=hello, image=stop_icon, text=' Finish', border='0')
-finish_btn.grid(row=8, column=2, pady=35)
-root.update()
+        pass
 
-crushed = False
-while not crushed:
-    pygame.display.update()
-    root.update()
+
+sim_data, blop_catalogue = decode_template("./data/scenarios/Fabula.crum")
+engine = Engine(sim_data, blop_catalogue)
