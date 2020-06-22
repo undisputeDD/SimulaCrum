@@ -3,41 +3,18 @@ import random
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-
 from PIL import Image, ImageTk
 from tkcolorpicker import askcolor
+import logging
 
 global max_tabs
-max_tabs = 5
+max_tabs = 8
 
 
-def show_info():
-    messagebox.showinfo("Help?", "This is Blop Catalogue. Each tab is used to describe one kind of creatures."
-                                 "First tab is created automatically, since at least one kind is required for "
-                                 "simulation to exist. Follow these instructions to create valid BlopKind:"
-                                 "\n\n1. You must name the kind, and name must be unique"
-                                 "\n\n2. Change default speed, replica (HP for breeding) and survival (HP for "
-                                 "surviving) thresholds if you wish. Replica value must exceed survival."
-                                 "\n\n3. Share field is used to define initial population structure - that is, "
-                                 "what part this kind will constitute in it. You can write number from 0 to 100, "
-                                 "but keep in mind that total probabilities of saved kinds must be equal to 100 "
-                                 "\n\n4. Behavior defines blop paradigm of interaction with other blops"
-                                 "\n\n5. Mutations window allows you to establish rules of breeding and evolution. You "
-                                 "can assign chance of creating that specific descender of creature of this kind. "
-                                 "Default variant is absence of mutations, in other words, bloppy blop will only be "
-                                 "able to create bloppy blops"
-                                 "\n\n6. Blop characterising color is randomized, but you're able to change it if you "
-                                 "wish by clicking on color picker icon. That color will be used in data "
-                                 "representation, so it's advised to pick quite distinguishable colors for your "
-                                 "convenience"
-                                 "\n\n7. Click New if you want to compose another race of blops. Use Clone if you want "
-                                 "to create quite similar type - all you entered data, except of unique name, "
-                                 "will be copied to the new tab. When you are done with the race, click Save. If you "
-                                 "change something later don't forget to Save again."
-                                 "\n\nP.S. You can use shortcuts to trigger buttons: Ctrl+I - for helpbox, Ctrl+C - "
-                                 "to clone, Ctrl+N -to create new kind, Ctrl+S - to save, Ctrl-W - to close current tab"
-                                 " Ctrl-M - to open mutations window"
-                        )
+def show_info(file):
+    with open(f'./data/manuals/{file}.txt') as file:
+        message = file.read()
+    messagebox.showinfo("Help?", message)
 
 
 def contrast(hex_color):
@@ -55,7 +32,7 @@ def pick_color(label, color_var):
 
 def show_message(mini_root):
     ttk.Label(mini_root, text="You haven't saved any (other) BlopKind yet!").grid(row=0, column=1, pady=50, padx=10)
-    img = ImageTk.PhotoImage(Image.open("./data/icons/confused.png").resize((50, 50), Image.ANTIALIAS))
+    img = ImageTk.PhotoImage(Image.open("./data/icons/confused.png").resize((55, 55), Image.ANTIALIAS))
     confused = ttk.Label(mini_root, image=img)
     confused.image = img
     confused.grid(row=0, column=0, pady=50, padx=10)
@@ -99,23 +76,22 @@ class BlopCatalogue(ttk.Notebook):
         name_icon = ImageTk.PhotoImage(Image.open("./data/icons/brand.png").resize((45, 45), Image.ANTIALIAS))
         name_icon_lbl = ttk.Label(tab, image=name_icon)
         name_icon_lbl.image = name_icon
-        name_icon_lbl.grid(row=1, column=0, padx=(5, 5), pady=(0, 8))
+        name_icon_lbl.grid(row=1, column=0, padx=(5, 5), pady=(0, 10))
 
         name_var = tk.StringVar(tab)
         name_field = ttk.Entry(tab, width=12, font=("Helvetica", 10), textvariable=name_var)
         name_field.grid(row=1, column=1)
         name_field.bind("<Return>", lambda _: self.handle_enter(tab, name_field))
-        name_field.focus_set()
 
         # population share
         ratio_lbl = ttk.Label(tab, text="Share")
         ratio_lbl.grid(row=0, column=2, columnspan=2, pady=(0, 0))
 
         ratio_icon = ImageTk.PhotoImage(
-            Image.open("./data/icons/piechart.png").resize((55, 55), Image.ANTIALIAS))
+            Image.open("./data/icons/piechart.png").resize((60, 60), Image.ANTIALIAS))
         ratio_icon_lbl = ttk.Label(tab, image=ratio_icon)
         ratio_icon_lbl.image = ratio_icon
-        ratio_icon_lbl.grid(row=1, column=2, padx=(10, 10), pady=8)
+        ratio_icon_lbl.grid(row=1, column=2, padx=(30, 20), pady=8)
 
         ratio_var = tk.StringVar(tab)
         ratio_field = ttk.Entry(tab, width=12, font=("Helvetica", 10), justify='right', textvariable=ratio_var)
@@ -129,10 +105,10 @@ class BlopCatalogue(ttk.Notebook):
             Image.open("./data/icons/boxing.png").resize((60, 60), Image.ANTIALIAS))
         encounter_icon_lbl = ttk.Label(tab, image=encounter_icon)
         encounter_icon_lbl.image = encounter_icon
-        encounter_icon_lbl.grid(row=1, column=4, padx=(20, 0), pady=8)
+        encounter_icon_lbl.grid(row=1, column=4, padx=(10, 5), pady=8)
 
         encounter_var = tk.StringVar(tab)
-        encounter_options = ttk.OptionMenu(tab, encounter_var, "Behavior",  # <- pre-chosen
+        encounter_options = ttk.OptionMenu(tab, encounter_var, "None",  # <- pre-chosen
                                            "Aggressive", "Submissive", "Neutral")  # all options
         encounter_options.grid(row=1, column=5, padx=(0, 10))
 
@@ -140,10 +116,10 @@ class BlopCatalogue(ttk.Notebook):
         survive_lbl = ttk.Label(tab, text="Survival")
         survive_lbl.grid(row=2, column=0, columnspan=2, pady=(8, 4))
 
-        survive_icon = ImageTk.PhotoImage(Image.open("./data/icons/life.png").resize((50, 50), Image.ANTIALIAS))
+        survive_icon = ImageTk.PhotoImage(Image.open("./data/icons/life.png").resize((55, 55), Image.ANTIALIAS))
         survive_icon_lbl = ttk.Label(tab, image=survive_icon)
         survive_icon_lbl.image = survive_icon
-        survive_icon_lbl.grid(row=3, column=0, padx=(20, 0))
+        survive_icon_lbl.grid(row=3, column=0, padx=(20, 20))
 
         survive_val = tk.DoubleVar(tab)
         survive_val_lbl = ttk.Label(tab, textvariable=survive_val)
@@ -157,12 +133,12 @@ class BlopCatalogue(ttk.Notebook):
 
         # replicate section
         replica_lbl = ttk.Label(tab, text="Replication")
-        replica_lbl.grid(row=2, column=2, columnspan=2, pady=(10, 0))
+        replica_lbl.grid(row=2, column=2, columnspan=2, pady=(10, 0), padx=(10, 0))
 
-        replica_icon = ImageTk.PhotoImage(Image.open("./data/icons/cycle2.png").resize((55, 55), Image.ANTIALIAS))
+        replica_icon = ImageTk.PhotoImage(Image.open("./data/icons/cycle2.png").resize((60, 60), Image.ANTIALIAS))
         replica_icon_lbl = ttk.Label(tab, image=replica_icon)
         replica_icon_lbl.image = replica_icon
-        replica_icon_lbl.grid(row=3, column=2, padx=(50, 50), pady=8)
+        replica_icon_lbl.grid(row=3, column=2, padx=(20, 10), pady=(10, 0))
 
         replica_val = tk.DoubleVar(tab)
         replica_val_lbl = ttk.Label(tab, textvariable=replica_val)
@@ -171,14 +147,14 @@ class BlopCatalogue(ttk.Notebook):
         replica_var = tk.DoubleVar(tab)
         replica_scale = ttk.Scale(tab, from_=0.5, to=5, orient=tk.HORIZONTAL, length=120,
                                   variable=replica_var, command=lambda s: replica_val.set('%0.1f' % float(s)))
-        replica_scale.grid(row=3, column=3, sticky='ew', padx=(0, 10), pady=(20, 0))
+        replica_scale.grid(row=3, column=3, sticky='ew', padx=(0, 10), pady=(30, 0))
         replica_scale.set(2)
 
         # speed section
         speed_lbl = ttk.Label(tab, text="Speed")
         speed_lbl.grid(row=2, column=4, columnspan=2, pady=(8, 4))
 
-        speed_icon = ImageTk.PhotoImage(Image.open("./data/icons/speed2.png").resize((50, 50), Image.ANTIALIAS))
+        speed_icon = ImageTk.PhotoImage(Image.open("./data/icons/speed2.png").resize((55, 55), Image.ANTIALIAS))
         speed_icon_lbl = ttk.Label(tab, image=speed_icon)
         speed_icon_lbl.image = speed_icon  # we need to keep reference to it
         speed_icon_lbl.grid(row=3, column=4, padx=(10, 5), pady=(0, 0))
@@ -189,7 +165,7 @@ class BlopCatalogue(ttk.Notebook):
         span_var_lbl.grid(row=3, column=5, sticky='n')
         span_scale = ttk.Scale(tab, from_=0.5, to=5, orient=tk.HORIZONTAL, length=100,
                                variable=speed_var, command=lambda s: speed_slider.set('%0.1f' % float(s)))
-        span_scale.grid(row=3, column=5, sticky='ew', padx=(5, 0), pady=(20, 0))
+        span_scale.grid(row=3, column=5, sticky='ew', padx=(5, 10), pady=(20, 0))
         span_scale.set(1)
 
         # color label
@@ -198,9 +174,9 @@ class BlopCatalogue(ttk.Notebook):
         color_var.set(color)
         picked_color_lbl = ttk.Label(tab, background=color, width=12,
                                      text="Random", foreground=contrast(color), font=("Helvetica", 10), anchor='center')
-        picked_color_lbl.grid(row=6, column=5, pady=25, padx=(10, 6))
+        picked_color_lbl.grid(row=6, column=5, pady=25, padx=(10, 15))
 
-        color_icon = ImageTk.PhotoImage(Image.open("./data/icons/colorpicker.png").resize((50, 50), Image.ANTIALIAS))
+        color_icon = ImageTk.PhotoImage(Image.open("./data/icons/colorpicker.png").resize((55, 55), Image.ANTIALIAS))
         color_btn = tk.Button(tab, image=color_icon, command=lambda: pick_color(picked_color_lbl, color_var), border=0)
         color_btn.image = color_icon
         color_btn.grid(row=6, column=4, pady=25, padx=10)
@@ -208,19 +184,19 @@ class BlopCatalogue(ttk.Notebook):
         # mutations
         mutation_dict = {}
         mutation_icon = ImageTk.PhotoImage(
-            Image.open("./data/icons/dna3.png").resize((50, 50), Image.ANTIALIAS))
+            Image.open("./data/icons/dna3.png").resize((55, 55), Image.ANTIALIAS))
         mutation_icon_lbl = ttk.Label(tab, image=mutation_icon)
         mutation_icon_lbl.image = mutation_icon
-        mutation_icon_lbl.grid(row=6, column=2, padx=(20, 0), pady=15)
+        mutation_icon_lbl.grid(row=6, column=2, padx=(10, 0), pady=15)
 
-        mutation_btn = ttk.Button(tab, text='Mutations', command=lambda: self.mutate_win(blop_data))
+        mutation_btn = ttk.Button(tab, text='Mutations', command=lambda: self.mutate_window(blop_data))
         mutation_btn.grid(row=6, column=3, pady=15)
 
         # lifespan section
         span_lbl = ttk.Label(tab, text="Lifespan")
-        span_lbl.grid(row=5, column=0, columnspan=2, pady=(8, 4))
+        span_lbl.grid(row=5, column=0, columnspan=2, pady=(15, 0))
 
-        span_icon = ImageTk.PhotoImage(Image.open("./data/icons/cardio.png").resize((50, 50), Image.ANTIALIAS))
+        span_icon = ImageTk.PhotoImage(Image.open("./data/icons/cardio.png").resize((55, 55), Image.ANTIALIAS))
         span_icon_lbl = ttk.Label(tab, image=span_icon)
         span_icon_lbl.image = span_icon  # we need to keep reference to it
         span_icon_lbl.grid(row=6, column=0, padx=(10, 5), pady=(0, 0))
@@ -231,7 +207,7 @@ class BlopCatalogue(ttk.Notebook):
         span_var_lbl.grid(row=6, column=1, sticky='n')
         span_scale = ttk.Scale(tab, from_=0.5, to=5, orient=tk.HORIZONTAL, length=100,
                                variable=span_var, command=lambda s: span_slider.set('%0.1f' % float(s)))
-        span_scale.grid(row=6, column=1, sticky='ew', padx=(5, 0), pady=(20, 0))
+        span_scale.grid(row=6, column=1, sticky='ew', padx=(5, 0), pady=(10, 0))
         span_scale.set(1)
 
         blop_data['behave'] = encounter_var
@@ -254,59 +230,39 @@ class BlopCatalogue(ttk.Notebook):
         clone_btn = ttk.Button(tab, text='Clone', command=lambda: self.clone_blop(blop_data))
         clone_btn.grid(row=7, column=3, padx=10, pady=10)
 
-        info_icon = ImageTk.PhotoImage(Image.open("./data/icons/info2.png").resize((24, 24), Image.ANTIALIAS))
-        finish_btn = tk.Button(tab, command=show_info, image=info_icon, border=0)
-        finish_btn.image = info_icon
-        finish_btn.grid(row=7, column=0)
+        info_icon = ImageTk.PhotoImage(Image.open("./data/icons/info2.png").resize((30, 30), Image.ANTIALIAS))
+        info_btn = tk.Button(tab, command=lambda: show_info('catalogue'), image=info_icon, border=0)
+        info_btn.image = info_icon
+        info_btn.grid(row=7, column=0, padx=(0, 20))
 
-        self.root.bind("<Control-m>", lambda _: self.mutate_win(self.frame_to_data[self.select()]))
-        self.root.bind("<Control-c>", lambda _: self.clone_blop(self.frame_to_data[self.select()]))
-        self.root.bind("<Control-s>", lambda _: self.save_blop(tab, self.frame_to_data[self.select()]))
-        self.root.bind("<Control-n>", lambda _: self.add_filled_tab())
-        self.root.bind("<Control-Tab>", lambda _: self.next_tab())
-        self.root.bind("<Control-w>", lambda _: self.close_tab())
-        self.root.bind("<Control-i>", lambda _: show_info())
-        self.root.bind("<Control-h>", lambda _: show_info())
-        print(blop_data)
+        self.mainwin.bind("<Control-m>", lambda _: self.mutate_window(self.frame_to_data[self.select()]))
+        self.mainwin.bind("<Control-c>", lambda _: self.clone_blop(self.frame_to_data[self.select()]))
+        self.mainwin.bind("<Control-s>", lambda _: self.save_blop(tab, self.frame_to_data[self.select()]))
+        self.mainwin.bind("<Control-n>", lambda _: self.add_filled_tab())
+        self.mainwin.bind("<Control-Tab>", lambda _: self.next_tab())
+        self.mainwin.bind("<Control-w>", lambda _: self.close_tab())
         return blop_data
-
-    __initialized = False
 
     def handle_enter(self, tab, full_name_entry):
         self.tab(tab, text=full_name_entry.get())
 
-    def save_blop(self, tab, data):
-        widget = self
-        tab.focus_set()
-        widget.tab(tab, text=data['name'].get())
-        if widget.proof_read(data) is not None:
-            messagebox.showerror("Invalid input", widget.proof_read(data))
-            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/fail.png").resize((15, 15)), Image.ANTIALIAS)
-            widget.tab(tab, image=saved_icon, compound='left')
-            tab.update()
-        else:
-            messagebox.showinfo("Success", "Data was recorded!")
-            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/mini_tick.png"))
-            widget.tab(tab, image=saved_icon, compound='left')
-            tab.image = saved_icon
-            widget.valid_blops[widget.select()] = data
-
     def clone_blop(self, this_tab_data):
-        widget = self
-        widget.add_filled_tab()
+        self.add_filled_tab()
         for key, value in this_tab_data.items():
             try:
                 if key == 'color':
                     pass
                 else:
-                    widget.frame_to_data[widget.select()][key].set(value.get())
+                    self.frame_to_data[self.select()][key].set(value.get())
             except Exception:
-                widget.frame_to_data[widget.select()][key] = copy.deepcopy(value)
+                self.frame_to_data[self.select()][key] = copy.deepcopy(value)
 
     def next_tab(self):
         index_num = self.index(self.select())
         desired = (index_num + 1) % len(self.tabs())
         self.select(desired)
+
+    __initialized = False
 
     def __init__(self, parent, *args, **kwargs):
         if not self.__initialized:
@@ -314,17 +270,18 @@ class BlopCatalogue(ttk.Notebook):
             self.__inititialized = True
 
         kwargs["style"] = "CustomNotebook"
-        ttk.Notebook.__init__(self, *args, **kwargs)
-        tab = tk.Frame(self)
+        ttk.Notebook.__init__(self, parent, **kwargs)
         self.notebook = ttk.Notebook(parent)
         self._active = None
         self.root = parent
-        self.root.resizable(False, False)
+        self.mainwin = parent.root
+        self.apparition = 0
+        # self.root.resizable(False, False)
         self.bind("<ButtonPress-1>", self.on_close_press)
         self.bind("<ButtonRelease-1>", self.on_close_release)
         self.frame_to_data = {}
         self.valid_blops = {}
-
+        tab = tk.Frame(self)
         self.add(tab, text='first kind')
         self.select(len(self.tabs()) - 1)
         self.fill_tab(tab)
@@ -340,17 +297,39 @@ class BlopCatalogue(ttk.Notebook):
         new_tab.focus_set()
         return new_tab
 
-    def valid_entries(self):
-        return self.valid_blops
+    def restore_data(self, data):
+        self.close_tab(True)  # deletes auto-created 'first kind' tab
+        for blop_kind_name, blop_dict in data:  # restore tabs from given data
+            self.restore_tab(blop_dict)
 
-    def close_tab(self):
+    def restore_tab(self, data):
+        self.add_filled_tab()
+        for key, value in self.frame_to_data[self.select()].items():
+            tab = self.select()
+            self.valid_blops[tab] = self.frame_to_data[tab]
+            self.tab(tab, text=data['name'])
+            try:
+                value.set(data[key])
+            except Exception as e:  # mutate
+                self.frame_to_data[self.select()][key] = data[key]
+
+    def close_tab(self, auto=False):
+        if auto:
+            self.forget(self.select())
+            return
         if len(self.tabs()) == 1:
             messagebox.showerror("Destroying root", "You cannot delete the last tab!")
             return
         if messagebox.askokcancel("Quit", "Do you want to close this tab? All entered data will be erased!"):
             tab_id = self.select()
             self.forget(tab_id)
+            cur_sum = 0
+            for _, value in self.valid_blops.items():
+                cur_sum += float(value['ratio'].get())
             self.valid_blops.pop(tab_id, None)
+            cur_sum = 0
+            for _, value in self.valid_blops.items():
+                cur_sum += float(value['ratio'].get())
 
     def on_close_press(self, event):
         if len(self.tabs()) == 1:
@@ -382,9 +361,8 @@ class BlopCatalogue(ttk.Notebook):
         self.state(["!pressed"])
         self._active = None
 
-    def mutate_win(self, data):
-        widget = self
-        mini_root = tk.Toplevel(widget)
+    def mutate_window(self, data):
+        mini_root = tk.Toplevel(self)
         mini_root.grab_set()
         mini_root.focus_set()
         mini_root.title('Mutations')
@@ -397,14 +375,14 @@ class BlopCatalogue(ttk.Notebook):
 
         x = 0
         new_dict = {}
-        valid = list(widget.valid_blops.items())
-        if len(valid) == 0 or (len(valid) == 1 and widget.select() in widget.valid_blops):
+        valid = list(self.valid_blops.items())
+        if len(valid) == 0 or (len(valid) == 1 and self.select() in self.valid_blops):
             show_message(mini_root)
             return
 
         text_entries = []
         for key, value in valid:
-            if key != widget.select():
+            if key != self.select():
                 hex_color = value['color'].get()
                 contrast_font = contrast(hex_color)
                 ttk.Label(mini_root, text=value['name'].get(), background=hex_color, foreground=contrast_font, width=12,
@@ -428,25 +406,47 @@ class BlopCatalogue(ttk.Notebook):
         save_btn = ttk.Button(mini_root, text='Save', command=lambda: save_mute(data['mutate'], new_dict, mini_root))
         save_btn.grid(row=x, column=1, padx=10, pady=10)
 
+    def save_blop(self, tab, data):
+        tab.focus_set()
+        self.tab(tab, text=data['name'].get())
+        check_result = self.proof_read(data)
+        if check_result is not None:
+            messagebox.showerror("Invalid input", check_result)  # error message
+            # cancel temporary icon
+            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/fail.png").resize((15, 15)), Image.ANTIALIAS)
+            self.tab(tab, image=saved_icon, compound='left')
+            tab.update()
+        else:
+            # success icon
+            messagebox.showinfo("Success", f'Data was recorded! Total apparition chance is {self.apparition}%')
+            saved_icon = ImageTk.PhotoImage(Image.open("./data/icons/mini_tick.png"))
+            self.tab(tab, image=saved_icon, compound='left')
+            tab.image = saved_icon
+            self.valid_blops[self.select()] = data
+
     def proof_read(self, data):
-        if data['name'].get() == "":
-            return "No name is saved!"
-        if data['name'].get() in self.valid_blops.values():
-            return "This name is already taken"
-        # survival must be < replication
-        if data['survive'].get() > data['replica'].get():
-            return "Replication Q is not bigger than Survival Q"
+        this_tab_id = self.select()
+        # dependant on others
+        for key, value in self.valid_blops.items():
+            if key != this_tab_id:
+                if data['name'].get() == value['name'].get():
+                    return "This name is already taken"
         if not data['ratio'].get().isdigit():
             return "Share value is not digit"
         share = float(data['ratio'].get())
-        if share > 100:
-            return "Share exceeds 100%"
         cur_sum = 0
-        for _, value in self.valid_blops.items():
-            cur_sum += float(value['ratio'].get())
+        for key, value in self.valid_blops.items():
+            if key != this_tab_id:
+                cur_sum += float(value['ratio'].get())
         if share + cur_sum > 100:
-            return "Total apparition chance for all kinds exceeds 100%"
-        print("All is fine")
+            return f'Total apparition chance for all kinds exceeds 100% ({int(share + cur_sum)}%)'
+        else:
+            self.apparition = share + cur_sum
+        # individual checks
+        if data['name'].get() == "":
+            return "No name is saved!"
+        if data['survive'].get() > data['replica'].get():
+            return "Replication Q is not bigger than Survival Q"
         return None
 
     def __initialize_custom_style(self):
