@@ -138,7 +138,6 @@ def draw_simulation_working_condition():
         screen.blit(button.get_image(), button.get_textRect())
 
     print('Work simulation')
-    # pygame.time.wait(3000)
 
 
 def draw_simulation_pause_condition():
@@ -160,7 +159,6 @@ def draw_simulation_pause_condition():
         screen.blit(button.get_image(), button.get_textRect())
 
     print('Pause simulation')
-    # pygame.time.wait(3000)
 
 
 if __name__ == '__main__':
